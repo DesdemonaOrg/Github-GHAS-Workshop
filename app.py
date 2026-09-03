@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import subprocess
 import sqlite3
 import os
+import ast
 
 app = Flask(__name__)
 
@@ -42,9 +43,11 @@ def run_command():
 
 @app.get("/eval")
 def evaluate():
-    # Intentionally vulnerable custom CodeQL target.
     expression = request.args.get("expression", "1 + 1")
-    result = eval(expression)
+    try:
+        result = ast.literal_eval(expression)
+    except (ValueError, SyntaxError):
+        return jsonify(error="Invalid expression"), 400
     return jsonify(result=result)
 
 if __name__ == "__main__":
