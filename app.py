@@ -28,9 +28,16 @@ def search():
 
 @app.get("/run")
 def run_command():
-    # Intentionally vulnerable for CodeQL demonstration.
-    command = request.args.get("command", "echo hello")
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    allowed_commands = {
+        "hello": ["echo", "hello"],
+        "date": ["date"],
+        "whoami": ["whoami"],
+    }
+    action = request.args.get("action", "hello")
+    if action not in allowed_commands:
+        return jsonify(error="Invalid action", allowed=list(allowed_commands.keys())), 400
+
+    result = subprocess.run(allowed_commands[action], capture_output=True, text=True)
     return jsonify(output=result.stdout, error=result.stderr)
 
 @app.get("/eval")
